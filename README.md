@@ -1,0 +1,84 @@
+# Voice Tool (MiniMax + ElevenLabs)
+
+Tool API đơn giản để:
+- Gọi TTS với **ElevenLabs** hoặc **MiniMax**.
+- Clone voice trên **ElevenLabs**.
+- Gắn API key qua biến môi trường.
+
+## Cài đặt
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+## Cấu hình API
+
+```bash
+cp .env.example .env
+# sửa key trong .env
+```
+
+Xuất biến môi trường:
+
+```bash
+export ELEVENLABS_API_KEY=...
+export MINIMAX_API_KEY=...
+export MINIMAX_GROUP_ID=...
+```
+
+## Chạy server
+
+```bash
+uvicorn src.main:app --reload --port 8000
+```
+
+## Endpoints
+
+### 1) Health
+
+`GET /health`
+
+### 2) Text-to-Speech
+
+`POST /tts`
+
+Body JSON:
+
+```json
+{
+  "provider": "elevenlabs",
+  "text": "Xin chào",
+  "voice_id": "VOICE_ID",
+  "model": "eleven_multilingual_v2"
+}
+```
+
+- `provider`: `elevenlabs` hoặc `minimax`
+- `model`: optional
+
+### 3) Clone voice ElevenLabs
+
+`POST /clone/elevenlabs` (multipart/form-data)
+- `name` (text)
+- `description` (text)
+- `files` (1 hoặc nhiều audio file)
+
+Ví dụ curl:
+
+```bash
+curl -X POST http://localhost:8000/clone/elevenlabs \
+  -H "accept: application/json" \
+  -F "name=My Clone" \
+  -F "description=voice clone test" \
+  -F "files=@sample1.mp3" \
+  -F "files=@sample2.wav"
+```
+
+## Lưu ý
+
+- Endpoint `/tts` trả về:
+  - ElevenLabs: `audio_base64` (hex bytes mp3) để dễ truyền tiếp qua API nội bộ.
+  - MiniMax: trả raw JSON từ MiniMax.
+- Bạn có thể đổi sang trả stream/file nếu muốn.
