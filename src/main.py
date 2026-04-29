@@ -7,7 +7,7 @@ import httpx
 from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from pydantic import BaseModel, Field
 
-app = FastAPI(title="Voice Tool Gateway", version="0.2.0")
+app = FastAPI(title="Công cụ giọng nói", version="0.3.0")
 
 
 class TtsRequest(BaseModel):
@@ -19,7 +19,7 @@ class TtsRequest(BaseModel):
 
 @app.get("/health")
 def health():
-    return {"ok": True}
+    return {"ok": True, "message": "Dịch vụ đang hoạt động"}
 
 
 @app.post("/tts")
@@ -40,7 +40,7 @@ async def clone_voice_elevenlabs(
     request_id = _request_id(request)
     api_key = os.getenv("ELEVENLABS_API_KEY")
     if not api_key:
-        raise HTTPException(status_code=500, detail="Missing ELEVENLABS_API_KEY")
+        raise HTTPException(status_code=500, detail="Thiếu biến môi trường ELEVENLABS_API_KEY")
 
     data = {"name": name, "description": description}
     multipart = []
@@ -58,13 +58,18 @@ async def clone_voice_elevenlabs(
         )
     if resp.status_code >= 400:
         raise HTTPException(status_code=resp.status_code, detail=resp.text)
-    return {"request_id": request_id, "provider": "elevenlabs", "result": resp.json()}
+    return {
+        "request_id": request_id,
+        "message": "Tạo bản sao giọng nói thành công",
+        "provider": "elevenlabs",
+        "result": resp.json(),
+    }
 
 
 async def _tts_elevenlabs(payload: TtsRequest, request_id: str):
     api_key = os.getenv("ELEVENLABS_API_KEY")
     if not api_key:
-        raise HTTPException(status_code=500, detail="Missing ELEVENLABS_API_KEY")
+        raise HTTPException(status_code=500, detail="Thiếu biến môi trường ELEVENLABS_API_KEY")
 
     body = {
         "text": payload.text,
@@ -81,15 +86,22 @@ async def _tts_elevenlabs(payload: TtsRequest, request_id: str):
         resp = await client.post(url, json=body, headers=headers)
     if resp.status_code >= 400:
         raise HTTPException(status_code=resp.status_code, detail=resp.text)
+
     audio_base64 = base64.b64encode(resp.content).decode("utf-8")
-    return {"request_id": request_id, "audio_base64": audio_base64, "format": "mp3", "provider": "elevenlabs"}
+    return {
+        "request_id": request_id,
+        "message": "Tạo giọng nói thành công",
+        "audio_base64": audio_base64,
+        "format": "mp3",
+        "provider": "elevenlabs",
+    }
 
 
 async def _tts_minimax(payload: TtsRequest, request_id: str):
     api_key = os.getenv("MINIMAX_API_KEY")
     group_id = os.getenv("MINIMAX_GROUP_ID")
     if not api_key or not group_id:
-        raise HTTPException(status_code=500, detail="Missing MINIMAX_API_KEY or MINIMAX_GROUP_ID")
+        raise HTTPException(status_code=500, detail="Thiếu MINIMAX_API_KEY hoặc MINIMAX_GROUP_ID")
 
     body = {
         "model": payload.model or "speech-01-hd",
@@ -107,7 +119,12 @@ async def _tts_minimax(payload: TtsRequest, request_id: str):
 
     if resp.status_code >= 400:
         raise HTTPException(status_code=resp.status_code, detail=resp.text)
-    return {"request_id": request_id, "provider": "minimax", "result": resp.json()}
+    return {
+        "request_id": request_id,
+        "message": "Tạo giọng nói thành công",
+        "provider": "minimax",
+        "result": resp.json(),
+    }
 
 
 def _request_id(request: Request) -> str:
