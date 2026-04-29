@@ -83,3 +83,18 @@ curl -X POST http://localhost:8000/clone/elevenlabs \
   - ElevenLabs: `audio_base64` (chuỗi Base64 chuẩn của mp3) để dễ truyền tiếp qua API nội bộ.
   - MiniMax: trả raw JSON từ MiniMax.
 - Bạn có thể đổi sang trả stream/file nếu muốn.
+
+
+## Chạy như một app hoàn chỉnh
+
+### Cách 1: chạy local
+```bash
+make run
+```
+
+### Cách 2: chạy bằng Docker
+```bash
+docker compose up --build
+```
+
+Sau khi chạy, truy cập tài liệu Swagger tại: `http://localhost:8000/docs`

@@ -1,0 +1,11 @@
+version: '3.9'
+services:
+  voice-tool:
+    build: .
+    container_name: voice-tool
+    ports:
+      - "8000:8000"
+    environment:
+      - ELEVENLABS_API_KEY=${ELEVENLABS_API_KEY}
+      - MINIMAX_API_KEY=${MINIMAX_API_KEY}
+      - MINIMAX_GROUP_ID=${MINIMAX_GROUP_ID}
