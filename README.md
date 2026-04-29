@@ -57,6 +57,7 @@ Body JSON:
 
 - `provider`: `elevenlabs` hoặc `minimax`
 - `model`: optional
+- Mọi response sẽ có `request_id` để trace; bạn có thể truyền `X-Request-ID` (ví dụ: `2399e9d8-7c9b-4c69-b610-2aa3b23b6fee`).
 
 ### 3) Clone voice ElevenLabs
 

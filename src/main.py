@@ -1,12 +1,13 @@
 import base64
 import os
-from typing import Optional, Literal
+import uuid
+from typing import Literal, Optional
 
 import httpx
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException
+from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from pydantic import BaseModel, Field
 
-app = FastAPI(title="Voice Tool Gateway", version="0.1.0")
+app = FastAPI(title="Voice Tool Gateway", version="0.2.0")
 
 
 class TtsRequest(BaseModel):
@@ -22,18 +23,21 @@ def health():
 
 
 @app.post("/tts")
-async def text_to_speech(payload: TtsRequest):
+async def text_to_speech(payload: TtsRequest, request: Request):
+    request_id = _request_id(request)
     if payload.provider == "elevenlabs":
-        return await _tts_elevenlabs(payload)
-    return await _tts_minimax(payload)
+        return await _tts_elevenlabs(payload, request_id)
+    return await _tts_minimax(payload, request_id)
 
 
 @app.post("/clone/elevenlabs")
 async def clone_voice_elevenlabs(
+    request: Request,
     name: str = Form(...),
     description: str = Form(""),
     files: list[UploadFile] = File(...),
 ):
+    request_id = _request_id(request)
     api_key = os.getenv("ELEVENLABS_API_KEY")
     if not api_key:
         raise HTTPException(status_code=500, detail="Missing ELEVENLABS_API_KEY")
@@ -54,10 +58,10 @@ async def clone_voice_elevenlabs(
         )
     if resp.status_code >= 400:
         raise HTTPException(status_code=resp.status_code, detail=resp.text)
-    return resp.json()
+    return {"request_id": request_id, "provider": "elevenlabs", "result": resp.json()}
 
 
-async def _tts_elevenlabs(payload: TtsRequest):
+async def _tts_elevenlabs(payload: TtsRequest, request_id: str):
     api_key = os.getenv("ELEVENLABS_API_KEY")
     if not api_key:
         raise HTTPException(status_code=500, detail="Missing ELEVENLABS_API_KEY")
@@ -78,10 +82,10 @@ async def _tts_elevenlabs(payload: TtsRequest):
     if resp.status_code >= 400:
         raise HTTPException(status_code=resp.status_code, detail=resp.text)
     audio_base64 = base64.b64encode(resp.content).decode("utf-8")
-    return {"audio_base64": audio_base64, "format": "mp3", "provider": "elevenlabs"}
+    return {"request_id": request_id, "audio_base64": audio_base64, "format": "mp3", "provider": "elevenlabs"}
 
 
-async def _tts_minimax(payload: TtsRequest):
+async def _tts_minimax(payload: TtsRequest, request_id: str):
     api_key = os.getenv("MINIMAX_API_KEY")
     group_id = os.getenv("MINIMAX_GROUP_ID")
     if not api_key or not group_id:
@@ -103,4 +107,8 @@ async def _tts_minimax(payload: TtsRequest):
 
     if resp.status_code >= 400:
         raise HTTPException(status_code=resp.status_code, detail=resp.text)
-    return {"provider": "minimax", "result": resp.json()}
+    return {"request_id": request_id, "provider": "minimax", "result": resp.json()}
+
+
+def _request_id(request: Request) -> str:
+    return request.headers.get("X-Request-ID", str(uuid.uuid4()))
