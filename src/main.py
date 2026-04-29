@@ -7,7 +7,7 @@ import httpx
 from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from pydantic import BaseModel, Field
 
-app = FastAPI(title="Công cụ giọng nói", version="0.3.0")
+app = FastAPI(title="voice", version="0.3.1")
 
 
 class TtsRequest(BaseModel):

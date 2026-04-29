@@ -1,4 +1,4 @@
-# Công cụ Voice (MiniMax + ElevenLabs)
+# voice (MiniMax + ElevenLabs)
 
 Tool API đơn giản để:
 - Gọi TTS với **ElevenLabs** hoặc **MiniMax**.
