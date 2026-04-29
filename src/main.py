@@ -1,3 +1,4 @@
+import base64
 import os
 from typing import Optional, Literal
 
@@ -76,7 +77,8 @@ async def _tts_elevenlabs(payload: TtsRequest):
         resp = await client.post(url, json=body, headers=headers)
     if resp.status_code >= 400:
         raise HTTPException(status_code=resp.status_code, detail=resp.text)
-    return {"audio_base64": resp.content.hex(), "format": "mpeg", "provider": "elevenlabs"}
+    audio_base64 = base64.b64encode(resp.content).decode("utf-8")
+    return {"audio_base64": audio_base64, "format": "mp3", "provider": "elevenlabs"}
 
 
 async def _tts_minimax(payload: TtsRequest):

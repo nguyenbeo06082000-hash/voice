@@ -79,6 +79,6 @@ curl -X POST http://localhost:8000/clone/elevenlabs \
 ## Lưu ý
 
 - Endpoint `/tts` trả về:
-  - ElevenLabs: `audio_base64` (hex bytes mp3) để dễ truyền tiếp qua API nội bộ.
+  - ElevenLabs: `audio_base64` (chuỗi Base64 chuẩn của mp3) để dễ truyền tiếp qua API nội bộ.
   - MiniMax: trả raw JSON từ MiniMax.
 - Bạn có thể đổi sang trả stream/file nếu muốn.
